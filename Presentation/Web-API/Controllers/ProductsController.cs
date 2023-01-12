@@ -1,4 +1,5 @@
 ﻿using Application.Repositories;
+using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -20,7 +21,7 @@ namespace Web_API.Controllers
         }
 
         [HttpGet("Test")]
-        public async void Test() 
+        public async Task Test() 
         {
             await _productWrite.AddRangeAsync(new()
             {
@@ -31,5 +32,12 @@ namespace Web_API.Controllers
             await _productWrite.SaveAsync();
         }
 
+
+        [HttpGet("Test/{id}")]
+        public async Task<IActionResult> Test(string id)
+        {
+            Product product = await _productRead.GetByIdAsync(id);
+            return Ok(product);
+        }
     }
 }
