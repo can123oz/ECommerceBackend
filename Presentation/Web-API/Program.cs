@@ -31,6 +31,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//app.MapGet("deneme", () => "deneme ana sayfa");
-
 app.Run();

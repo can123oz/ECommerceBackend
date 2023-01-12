@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using Persistance.Configurations;
 using Persistance.Contexts;
 using System;
 using System.Collections.Generic;

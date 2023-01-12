@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Persistance.Configurations
+namespace Persistance
 {
     static class Configuration
     {
-        public static string ConnectionString 
+        public static string ConnectionString
         {
             get
             {
