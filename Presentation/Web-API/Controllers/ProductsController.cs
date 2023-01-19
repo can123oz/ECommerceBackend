@@ -12,42 +12,43 @@ namespace Web_API.Controllers
     {
         private readonly IProductReadRepository _productRead;
         private readonly IProductWriteRepository _productWrite;
+        private readonly IOrderWriteRepository _orderWrite;
+        private readonly ICustomerWriteRepository _customerWrite;
+        private readonly ICustomerReadRepository _customerRead;
 
 
-        public ProductsController(IProductReadRepository productRead, IProductWriteRepository productWrite)
+
+        public ProductsController(IProductReadRepository productRead,
+            IProductWriteRepository productWrite,
+            IOrderWriteRepository orderWrite,
+            ICustomerWriteRepository customerWrite,
+            ICustomerReadRepository customerRead)
         {
             _productRead = productRead;
             _productWrite = productWrite;
+            _orderWrite = orderWrite;
+            _customerWrite = customerWrite;
+            _customerRead = customerRead;
         }
 
-        [HttpGet("Test")]
-        public async Task<IActionResult> Test()
+        [HttpGet("Test1")]
+        public async Task<IActionResult> Test1()
         {
-            //await _productWrite.AddRangeAsync(new()
-            //{
-            //    new() { Id = Guid.NewGuid(), Name = "Product1", Price = 10, Stock = 100, CreatedDate = DateTime.UtcNow },
-            //    new() { Id = Guid.NewGuid(), Name = "Product2", Price = 20, Stock = 200, CreatedDate = DateTime.UtcNow },
-            //    new() { Id = Guid.NewGuid(), Name = "Product3", Price = 30, Stock = 300, CreatedDate = DateTime.UtcNow },
-            //});
-            //await _productWrite.SaveAsync();
-            var products = _productRead.GetAll();
+            Customer customer = await _customerRead.GetByIdAsync("e9017731-5fa0-42e2-a2a1-ba94af7515ae");
+            customer.Name = "update deneme";
+            await _customerWrite.SaveAsync();
             return Ok();
         }
 
 
-        [HttpGet("Test/{id}")]
-        public async Task<IActionResult> Test(string id)
+        [HttpGet("Test2")]
+        public async Task<IActionResult> Test2()
         {
-            if (id == "1")
-            {
-                Product product = await _productRead.GetByIdAsync("26530898-ce7b-4721-aaef-5afd0a58201d");
-                return Ok(product);
-            }
-            else
-            {
-                Product product = await _productRead.GetByIdAsync("26530898-ce7b-4721-aaef-5afd0a58201d", false);
-                return Ok(product);
-            }
+            var customerId = Guid.NewGuid();
+            await _customerWrite.AddAsync(new() { Id = customerId, Name = "son deneme"});
+            await _orderWrite.AddAsync(new() { Id = Guid.NewGuid(), Address = "artvin", Description = "order test12", CustomerId = customerId});
+            await _orderWrite.SaveAsync();
+            return Ok();
         }
     }
 }
