@@ -1,8 +1,11 @@
 ﻿using Application.Repositories;
+using Application.ViewModels.Products;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Extensions.Caching.Memory;
+using System.Net;
 
 namespace Web_API.Controllers
 {
@@ -12,42 +15,65 @@ namespace Web_API.Controllers
     {
         private readonly IProductReadRepository _productRead;
         private readonly IProductWriteRepository _productWrite;
-        private readonly IOrderWriteRepository _orderWrite;
-        private readonly ICustomerWriteRepository _customerWrite;
-        private readonly ICustomerReadRepository _customerRead;
 
 
 
         public ProductsController(IProductReadRepository productRead,
-            IProductWriteRepository productWrite,
-            IOrderWriteRepository orderWrite,
-            ICustomerWriteRepository customerWrite,
-            ICustomerReadRepository customerRead)
+            IProductWriteRepository productWrite)
         {
             _productRead = productRead;
             _productWrite = productWrite;
-            _orderWrite = orderWrite;
-            _customerWrite = customerWrite;
-            _customerRead = customerRead;
         }
 
-        [HttpGet("Test1")]
-        public async Task<IActionResult> Test1()
+        [HttpGet]
+        public IActionResult Get()
         {
-            Customer customer = await _customerRead.GetByIdAsync("e9017731-5fa0-42e2-a2a1-ba94af7515ae");
-            customer.Name = "update deneme";
-            await _customerWrite.SaveAsync();
-            return Ok();
+            return Ok(_productRead.GetAll(false)); //no need to track, only for reading...
         }
 
-
-        [HttpGet("Test2")]
-        public async Task<IActionResult> Test2()
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(string id)
         {
-            var customerId = Guid.NewGuid();
-            await _customerWrite.AddAsync(new() { Id = customerId, Name = "son deneme"});
-            await _orderWrite.AddAsync(new() { Id = Guid.NewGuid(), Address = "artvin", Description = "order test12", CustomerId = customerId});
-            await _orderWrite.SaveAsync();
+            var product = await _productRead.GetByIdAsync(id, false);
+            return Ok(product);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Post(VM_Create_Product model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _productWrite.AddAsync(new Product
+                {
+                    Name = model.Name,
+                    Stock = model.Stock,
+                    Price = model.Price,
+                });
+                await _productWrite.SaveAsync();
+                return StatusCode((int)HttpStatusCode.Created, result);
+            }
+            else
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest,ModelState);
+            }
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put(VM_Update_Product model)
+        {
+            var product = await _productRead.GetByIdAsync(model.Id);
+            product.Name = model.Name;
+            product.Stock = model.Stock;
+            product.Price = model.Price;
+            await _productWrite.SaveAsync();
+            return Ok(product);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            await _productWrite.RemoveAsync(id);
+            await _productWrite.SaveAsync();
             return Ok();
         }
     }
