@@ -1,4 +1,5 @@
 ﻿using Application.Repositories;
+using Application.RequestParameters;
 using Application.ViewModels.Products;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
@@ -26,11 +27,25 @@ namespace Web_API.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] Pagination pagination)
         {
-            return Ok(_productRead.GetAll(false)); //no need to track, only for reading...
+            Thread.Sleep(1000);
+            var allProducts = _productRead.GetAll(false);
+            var totalCount = allProducts.Count();
+            var products = allProducts.Skip(pagination.Page * pagination.Size)
+                .Take(pagination.Size)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Price,
+                    p.Stock,
+                    p.CreatedDate,
+                    p.UpdatedDate
+                });
+            return Ok(new { products, totalCount }); //no need to track, only for reading...
         }
-
+            
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
@@ -54,7 +69,7 @@ namespace Web_API.Controllers
             }
             else
             {
-                return StatusCode((int)HttpStatusCode.BadRequest,ModelState);
+                return StatusCode((int)HttpStatusCode.BadRequest, ModelState);
             }
         }
 
@@ -74,7 +89,7 @@ namespace Web_API.Controllers
         {
             await _productWrite.RemoveAsync(id);
             await _productWrite.SaveAsync();
-            return Ok();
+            return Ok(new { message = "Successfuly deleted" });
         }
     }
 }
